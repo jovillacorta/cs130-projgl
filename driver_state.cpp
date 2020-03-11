@@ -191,6 +191,7 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
                     case interp_type::smooth:
                         break;
                     case interp_type::noperspective:
+                        fragment.data[i] = alpha * (*in)[0].data[i] + beta * (*in)[1].data[i] + gamma * (*in)[2].data[i];
                         break;
                     default:{}
 
