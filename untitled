@@ -1,0 +1,42 @@
+
+int main(){
+
+		/* Welcome to XXX’s (change this to your student ID) 8-puzzle solver.
+		Type “1” to use a default puzzle, or “2” to enter your own puzzle.
+		2
+		Enter your puzzle, use a zero to represent the blank
+		Enter the first row, use space or tabs between numbers 1 2 3
+		Enter the second row, use space or tabs between numbers 4 8 0
+		Enter the third row, use space or tabs between numbers 7 6 5
+		Enter your choice of algorithm
+		Uniform Cost Search
+		A* with the Misplaced Tile heuristic.
+		A* with the Manhattan distance heuristic.
+		3
+		Expanding state
+		1 2 3
+		4 8 b
+		7 6 5
+		The best state to expand with a g(n) = 1 and h(n) = 4 is...
+		1 2 3
+		4 8 5
+		7 6 b Expanding this node...
+		The best state to expand with a g(n) = 2 and h(n) = 3 is...
+		1 2 3
+		4 8 5
+		7 b 6 Expanding this node...
+
+		.
+		. steps omitted here
+		.
+		The best state to expand with a g(n) = 4 and h(n) = 1 is...
+		1 2 3
+		4 5 6
+		7 b 8 Expanding this node...
+		Goal!!
+		To solve this problem the search algorithm expanded a total of XXX (correct numbers
+		should appear here) nodes.
+		The maximum number of nodes in the queue at any one time was YYY. */
+
+		return 0;
+}
