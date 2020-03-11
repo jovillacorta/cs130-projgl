@@ -107,7 +107,7 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
 
     float i[3], j[3];
 
-    //calculates i&j coordinates of vertices
+    // calculates i&j coordinates of vertices
     for (int q = 0; q < 3; ++q){
 
         // adj helps with homogeneous coordinates glPosition 
@@ -139,7 +139,6 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
 
     // calculate K values for each
     // a = k_0 + k_1*i + k_2*j
-
     k_alpha[0] = (i[B] * j[C] - i[C] * j[B]) * .5f / area_ABC;
     k_alpha[1] = (j[B] - j[C]) * .5f / area_ABC;
     k_alpha[2] = (i[C] - i[B]) * .5f / area_ABC;
@@ -152,11 +151,17 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
     k_gamma[1] = (j[A] - j[B]) * .5f / area_ABC;
     k_gamma[2] = (i[B] - i[A]) * .5f / area_ABC;
 
-
+    //  instead of iterating through every pixel
+    //  we calculate bounding pixels and only iterate through those
     float min_x_Triangle = std::min({i[0],i[1],i[2]});
     float min_y_Triangle = std::min({j[0],j[1],j[2]});
     float max_x_Triangle = std::max({i[0],i[1],i[2]});
     float max_y_Triangle = std::max({j[0],j[1],j[2]});
+
+    // our fragment data
+    data_fragment fragment;
+    fragment.data = new float[MAX_FLOATS_PER_VERTEX];
+    data_output pixel_Color;
 
 
     // pseudo code: for all x do 
@@ -176,18 +181,32 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
             }
 
             if (alpha >= 0 && beta >= 0 && gamma >= 0){
-                state.image_color[x + state.image_width * y] = make_pixel(255,255,255); 
+               //state.image_color[x + state.image_width * y] = make_pixel(255,255,255); 
+               for (int i = 0; i < state.floats_per_vertex; i++){
+
+                switch(state.interp_rules[i]){
+                    case interp_type::flat:
+                        fragment.data[i] = (*in)[0].data[i];
+                        break;
+                    case interp_type::smooth:
+                        break;
+                    case interp_type::noperspective:
+                        fragment.data[i] = alpha * (*in)[0].data[i] + beta * (*in)[1].data[i] + gamma * (*in)[2].data[i];
+                        break;
+                    default:{}
+
+                }
+               }
+
+               state.fragment_shader(fragment, pixel_Color, state.uniform_data);
+               state.image_color[x + state.image_width * y] = make_pixel(pixel_Color.output_color[0] * 255,
+                                                                        pixel_Color.output_color[1] * 255,
+                                                                        pixel_Color.output_color[2] * 255);
             }
             
         }
     }
 
-    // for(int y = min_y_Triangle; y < max_y_Triangle; y++){
-    //     for (int x = min_x_Triangle; x<max_x_Triangle; x++){
-    //         //alpha = area point / abd
-    //         float alpha = 
-    //     }
-    // }
     //std::cout<<"TODO: implement rasterization"<<std::endl;
 }
 

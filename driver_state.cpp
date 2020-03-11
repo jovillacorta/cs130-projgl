@@ -1,5 +1,6 @@
 #include "driver_state.h"
 #include <cstring>
+#include <float.h>
 
 driver_state::driver_state()
 {
@@ -19,13 +20,16 @@ void initialize_render(driver_state& state, int width, int height)
     state.image_width = width;
     state.image_height = height;
     state.image_color=0;
-    state.image_depth=0;
+
+    // our depth for z buffering -- initialize to some large number
+    state.image_depth= new float[state.image_height * state.image_width]; 
 
     state.image_color = new pixel[state.image_height * state.image_width];
 
     for (unsigned int j = 0; j < state.image_height; j++){
     	for (unsigned int i = 0; i < state.image_width; i++){
     		state.image_color[i + state.image_width * j] = make_pixel(0,0,0);
+            state.image_depth[i + state.image_width * j] = FLT_MAX;
     	}
     }
 
@@ -79,7 +83,6 @@ void render(driver_state& state, render_type type)
         }//
 	}
 
-//delete [] dataTriangle;
 //    std::cout<<"TODO: implement rendering."<<std::endl;
 }
 
@@ -104,14 +107,22 @@ void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
 // fragments, calling the fragment shader, and z-buffering.
 void rasterize_triangle(driver_state& state, const data_geometry* in[3])
 {
-
+    // note i is i coordinate
+    //      j is j coordinate
+    //      z is k coordinate for z-buffering
+    //      index 0,1,2 is vertice A,B,C respectively
+    const int A = 0;
+    const int B = 1; 
+    const int C = 2;
     float i[3], j[3];
+
+    float z[3]; 
 
     // calculates i&j coordinates of vertices
     for (int q = 0; q < 3; ++q){
 
         // adj helps with homogeneous coordinates glPosition 
-        // for instance x = x / homogeneous coordinate
+        // for instance x = x / w
         float adjPosition; 
 
         // indices from Lab 5:  * note pixels are centered on .5 
@@ -120,15 +131,13 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
         adjPosition = (in[q]->gl_Position[0]) / (in[q]->gl_Position[3]);
         i[q] = ((adjPosition + 1.0f) / 2.0f * state.image_width) - .5f;
         adjPosition = (in[q]->gl_Position[1]) / (in[q]->gl_Position[3]); 
-        j[q] = ((adjPosition + 1.0f) / 2.0f * state.image_height) - .5f;       
+        j[q] = ((adjPosition + 1.0f) / 2.0f * state.image_height) - .5f;  
+
+        adjPosition = (in[q]->gl_Position[2]) / (in[q]->gl_Position[3]);
+        z[q] = ((adjPosition + 1.0f) / 2.0f * state.image_height) - .5f;    
     }
 
-    // note i is i coordinate
-    //      j is j coordinate
-    //      index 0,1,2 is vertice A,B,C respectively
-    const int A = 0;
-    const int B = 1; 
-    const int C = 2;
+
 
     float area_ABC = (i[A]*(j[B]-j[C]) + i[B]*(j[C]-j[A]) + i[C]*(j[A]-j[B])) * .5f;
 
@@ -136,7 +145,7 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
     float alpha, beta, gamma;
     float k_alpha[3], k_beta[3], k_gamma[3];
 
-
+    float zeta;
     // calculate K values for each
     // a = k_0 + k_1*i + k_2*j
     k_alpha[0] = (i[B] * j[C] - i[C] * j[B]) * .5f / area_ABC;
@@ -180,7 +189,12 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
 
             }
 
-            if (alpha >= 0 && beta >= 0 && gamma >= 0){
+            zeta = alpha * z[0] + beta * z[1] + gamma * z[2];
+            if (zeta < state.image_depth[x + state.image_width * y] && 
+                alpha >= 0 && beta >= 0 && gamma >= 0){
+
+                state.image_depth[x + state.image_width * y] = zeta;
+
                //state.image_color[x + state.image_width * y] = make_pixel(255,255,255); 
                for (int i = 0; i < state.floats_per_vertex; i++){
 
@@ -207,6 +221,7 @@ void rasterize_triangle(driver_state& state, const data_geometry* in[3])
         }
     }
 
+    delete [] fragment.data;
     //std::cout<<"TODO: implement rasterization"<<std::endl;
 }
 
