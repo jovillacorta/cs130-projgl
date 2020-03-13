@@ -412,7 +412,7 @@ void clip1(driver_state& state, const data_geometry* in[3],int face){
                         Triangle2[A].data[i] = clip1[A].data[i];
                         break;
                     case interp_type::smooth:{
-                            Triangle1[A].data[i] = alpha2 * clip1[A].data[i]  + (1.0f - alpha2) * clip1[B].data[i];  
+                            Triangle1[A].data[i] = alpha2 * clip1[A].data[i]  + (1.0f - alpha2) * clip1[C].data[i];  
                             Triangle2[A].data[i] = alpha1 * clip1[A].data[i]  + (1.0f - alpha1) * clip1[B].data[i];                                  
                         break;
                     }
@@ -529,7 +529,7 @@ void clip2(driver_state& state, const data_geometry* in[3],int face){
                             break;
                         case interp_type::smooth:{
                                 Triangle1[B].data[i] = alpha1 * clip2[A].data[i]  + (1.0f - alpha1) * clip2[B].data[i];  
-                                Triangle1[C].data[i] = alpha1 * clip2[A].data[i]  + (1.0f - alpha1) * clip2[B].data[i];                                      
+                                Triangle1[C].data[i] = alpha1 * clip2[A].data[i]  + (1.0f - alpha1) * clip2[C].data[i];                                      
                             break;
                         }
                         case interp_type::noperspective:{
