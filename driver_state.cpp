@@ -69,12 +69,47 @@ void render(driver_state& state, render_type type)
         }
         
         case render_type::indexed: {
+
+            for (int i = 0; i < state.num_triangles; i++) {
+                for (int j = 0; j < 3; ++j) {
+                    a[j].data = state.vertex_data + state.index_data[i*3 + j] * state.floats_per_vertex;
+                    b[j].data = a[j].data;
+                    state.vertex_shader(a[j], b[j], state.uniform_data);
+                }
+                const data_geometry *triangle[3] = {&b[0], &b[1], &b[2]};
+                clip_triangle(state, triangle, 0);
+            }
             break;
         }
         case render_type::fan: {
+
+            for (int i = 0; i < state.num_vertices; i++) {
+                for (int j = 0; j < 3; ++j) {
+                    if (j)  // if not first vertex
+                        a[j].data = state.vertex_data + (i * state.floats_per_vertex + j * state.floats_per_vertex);
+                    else
+                        a[j].data = state.vertex_data +  j * state.floats_per_vertex;
+                    b[j].data = a[j].data;
+                    state.vertex_shader(a[j], b[j], state.uniform_data);
+                }
+
+                const data_geometry *triangle[3] = {&b[0], &b[1], &b[2]};
+                clip_triangle(state, triangle, 0);
+            }
             break;
         }
         case render_type::strip: {
+            for (int i = 0; i < state.num_vertices - 2; ++i) {
+                for (int j = 0; j < 3; ++j) {
+                    a[j].data = state.vertex_data + i * state.floats_per_vertex + j * state.floats_per_vertex;
+                    b[j].data = a[j].data;
+                    state.vertex_shader(a[j], b[j], state.uniform_data);
+                }
+
+                const data_geometry *triangle[3] = {&b[0], &b[1], &b[2]};
+                clip_triangle(state, triangle, 0);
+        }
+
             break;
         }
 			
@@ -93,9 +128,9 @@ void render(driver_state& state, render_type type)
 // simply pass the call on to rasterize_triangle.
 void clip_triangle(driver_state& state, const data_geometry* in[3],int face)
 {
-    int A = 0;
-    int B = 1;
-    int C = 2;
+    // int A = 0;
+    // int B = 1;
+    // int C = 2;
   
     if(face==6)
     {
